@@ -1,0 +1,6 @@
+You can try this playbook with vagrant, just do a vagrant up and it will automatically build the box.
+
+If you want to execute it on a real machine, add the hostname/ip to the inventory.ini file and run the playbook:
+ansible-playbook -i inventory.ini playbook.yml
+
+See the ansible intro to learn more: http://docs.ansible.com/intro_getting_started.html
