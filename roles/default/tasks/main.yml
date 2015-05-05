@@ -1,0 +1,76 @@
+---
+- name: Change root password
+  user: name=root password="$6$cTeQ5AAVQvud$Gi8jMsZRdEhzLcSy7L7pevfrQJMmk/6FNg/35fKcOv6BLMTizGtiRLoaSIVHlXdkSwIbPQyiqRRIbg.YlVHnm0" #MichaelDeHaan
+
+- name: Update apt cache
+  sudo: yes
+  apt: update_cache=yes
+
+- name: Dist upgrade
+  sudo: yes
+  apt: upgrade=dist
+
+- name: Install System Packages
+  sudo: yes
+  apt: pkg={{ item }} state=latest
+  with_items:
+    - curl
+    - wget
+    - vim
+    - python-software-properties
+    - open-vm-tools
+    - git
+
+- name: Add ansible ppa
+  sudo: yes
+  apt_repository: repo=ppa:ansible/ansible
+
+- name: Update apt cache
+  sudo: yes
+  apt: update_cache=yes
+
+- name: Install ansible package
+  sudo: yes
+  apt: pkg={{ item }} state=latest
+  with_items:
+    - ansible
+
+- name: Store the hostname in /etc/hostname
+  sudo: yes
+  shell: echo {{ hostname }} > /etc/hostname
+  when: hostname is defined
+
+- name: Set the hostname
+  sudo: yes
+  shell: hostname {{ hostname }}
+  when: hostname is defined
+
+- name: Set the hostname ipv4
+  sudo: yes
+  lineinfile: dest=/etc/hosts regexp='^127\.0\.0\.1 {{ hostname }}' line='127.0.0.1 {{ hostname }}' owner=root group=root mode=0644
+  when: hostname is defined
+
+- name: Set the hostname ipv6
+  sudo: yes
+  lineinfile: dest=/etc/hosts regexp='^::1 {{ hostname }}' line='::1 {{ hostname }}' owner=root group=root mode=0644
+  when: hostname is defined
+
+- name: Configure the timezone step 1
+  sudo: yes
+  shell: echo {{ timezone }} > /etc/timezone
+  when: timezone is defined
+
+- name: Configure the timezone step 2
+  sudo: yes
+  file: src=/usr/share/zoneinfo/{{timezone}} dest=/etc/localtime state=link force=yes backup=yes
+  when: timezone is defined
+
+- name: Generate ssh key
+  command: ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa creates=~/.ssh/id_rsa.pub
+
+- name: Detect external IP
+  command: curl --silent --fail http://ifconfig.me/ip
+  register: host_external_ip
+
+- name: Store external IP in variable
+  set_fact: host_external_ip="{{host_external_ip.stdout}}"

@@ -1,0 +1,10 @@
+---
+- hosts: all
+  sudo: true
+  roles:
+    - default
+    - mariadb
+    - nginx
+    - php5
+    - digitalocean
+    - gitlab

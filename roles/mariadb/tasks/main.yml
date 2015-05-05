@@ -1,0 +1,30 @@
+---
+- name: Add MariaDB repository
+  sudo: yes
+  apt_repository: repo='deb http://mirror3.layerjet.com/mariadb/repo/10.1/ubuntu trusty main' state=present
+
+- name: Add key for MariaDB repo
+  sudo: yes
+  apt_key: url=http://keyserver.ubuntu.com/pks/lookup?op=get&search=0xcbcb082a1bb943db
+
+- name: Update apt cache
+  sudo: yes
+  apt: update_cache=yes
+
+- name: Install MariaDB packages
+  sudo: yes
+  apt: pkg={{ item }} state=latest
+  with_items:
+    - mariadb-server
+    - python-mysqldb
+
+- name: Update root password for all root accounts
+  mysql_user: name=root host={{ item }} check_implicit_admin=yes password={{ mariadb.root_password }} login_user=root login_password={{ mariadb.root_password }}
+  with_items:
+    - 127.0.0.1
+    - ::1
+    - localhost
+
+- name: Update root password for hostname
+  mysql_user: name=root host={{ hostname }} check_implicit_admin=yes password={{ mariadb.root_password }} login_user=root login_password={{ mariadb.root_password }}
+  when: hostname is defined

@@ -1,0 +1,49 @@
+- name: Add ondrej php56 ppa
+  sudo: yes
+  apt_repository: repo=ppa:ondrej/php5-5.6
+
+- name: Update apt cache
+  sudo: yes
+  apt: update_cache=yes
+
+- name: Install php packages
+  sudo: yes
+  apt: pkg={{ item }} state=latest
+  with_items:
+    - php5
+    - php5-curl
+    - php5-mysql
+    - php5-sqlite
+    - php5-xsl
+    - php5-apcu
+    - php5-fpm
+    - php5-imagick
+    - php5-intl
+    - php5-mcrypt
+    - php5-mysql
+    - php5-redis
+    - php5-xdebug
+    - phpunit
+
+- name: Remove default php-fpm pool
+  sudo: yes
+  file: path=/etc/php5/fpm/pool.d/www.conf state=absent
+  notify: Restart php5-fpm
+
+- name: Add new default php-fpm pool
+  sudo: yes
+  template: src=default-pool.tpl dest=/etc/php5/fpm/pool.d/default.conf
+  notify: Restart php5-fpm
+
+- name: Fix cgi.fix_pathinfo in the php.ini from php-fpm
+  sudo: yes
+  lineinfile: dest=/etc/php5/fpm/php.ini regexp='^cgi\.fix_pathinfo=0' line='cgi.fix_pathinfo=0' owner=root group=root mode=0644
+
+- name: install composer
+  shell: curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin creates=/usr/local/bin/composer.phar
+
+- name: rename composer.phar to composer
+  shell: mv /usr/local/bin/composer.phar /usr/local/bin/composer creates=/usr/local/bin/composer
+
+- name: make composer executable
+  file: path=/usr/local/bin/composer mode=a+x state=file

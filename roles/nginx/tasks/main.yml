@@ -1,0 +1,32 @@
+---
+- name: Install nginx
+  sudo: yes
+  apt: pkg=nginx state=latest
+
+- name: Remove default nginx site
+  sudo: yes
+  file: path=/etc/nginx/sites-available/default state=absent
+  notify: Restart nginx
+
+- name: Add new default nginx site
+  sudo: yes
+  template: src=default-site.tpl dest=/etc/nginx/sites-available/default
+  notify: Restart nginx
+
+- name: Enable new default site
+  sudo: yes
+  file: src=/etc/nginx/sites-available/default dest=/etc/nginx/sites-enabled/default state=link
+  notify: Restart nginx
+
+- name: Create default nginx site directory
+  file: path=/var/www/project/release/v01/web/ state=directory recurse=yes
+
+- name: Add phpinfo file
+  sudo: yes
+  template: src=phpinfo.tpl dest=/var/www/project/release/v01/web/app.php
+  notify: Restart nginx
+
+- name: Create current symlink
+  sudo: yes
+  file: src=/var/www/project/release/v01/ dest=/var/www/project/current state=link
+  notify: Restart nginx

@@ -1,0 +1,20 @@
+---
+- name: Create swap file
+  sudo: yes
+  command: fallocate -l 4G /swapfile
+
+- name: Set swapfile permissions
+  sudo: yes
+  file: path=/swapfile mode=0600
+
+- name: Initialize swapfile
+  sudo: yes
+  command: mkswap /swapfile
+
+- name: Temporarily enable swapfile
+  sudo: yes
+  command: swapon /swapfile
+
+- name: Permanently enable swapfile
+  sudo: yes
+  lineinfile: dest=/etc/fstab regexp='^\/swapfile' line='/swapfile   none    swap    sw    0   0'
