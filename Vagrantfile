@@ -14,7 +14,7 @@ Vagrant.configure(2) do |config|
   
   config.vm.provision "ansible" do |ansible|
     ansible.verbose = false
-    ansible.playbook = "lemp.yml"
+    ansible.playbook = "playbook.yml"
 
     ansible.extra_vars = {
       hostname: "vagrantsi",
